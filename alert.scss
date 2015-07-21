@@ -1,0 +1,77 @@
+/*
+ * Sample SCSS for Alert.js
+ */
+
+
+#alert-scr {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+}
+
+
+#alert-scr {
+    background-color: hsla(0, 0%, 0%, 0.75);
+}
+
+
+#alert-win {
+    @include abs_cent;
+    max-width: 80%;
+    margin: 0;
+    padding: 0;
+    border: 1px solid $color_dark_border;
+    @include border_radius(8);
+    background-color: $color_white;
+    color: $color_black;
+    text-align: center;
+    overflow: hidden;
+
+    @media screen and (max-width: body_bound_m(-1)) {
+        width: 80%;
+    }
+    @media screen and (min-width: body_bound_m()) {
+    }
+}
+
+
+#alert-msg {
+    margin: grid(4) auto;
+    padding: block(0, 2);
+    font-size: font_size(1.5);
+}
+
+
+#alert-btns-wrap {
+    display: table;
+    width: 100%;
+    margin: grid(2) auto 0 auto;
+    padding: 0;
+    border-top: 1px solid $color_dark_border;
+    border-collapse: collapse;
+    vertical-align: middle;
+}
+
+
+.alert-btn {
+    display: table-cell;
+    padding: block(2, 1);
+    margin: 0;
+    border-left: 1px solid $color_dark_border;
+    border-right: 1px solid $color_dark_border;
+    font-size: font_size(1.5);
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &:hover {
+        background-color: hsla(0, 0%, 80%, 1.0);
+    }
+
+    &:first-child {border-left: none;}
+    &:last-child {border-right: none;}
+}
