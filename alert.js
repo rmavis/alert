@@ -1,15 +1,15 @@
 /* ALERT
  * This is a function for creating good-looking alerts.
  *
- * All configuration options are in the `this.config` object.
+ * All configuration options are in the `this.conf` object.
  *
  * To make the alert look good, you need to use CSS. The relevant
- * CSS entries are included in `this.config`, and are:
+ * CSS entries are included in `this.conf`, and are:
  * - screenId: the ID of the screen element, which is the
  *   container for the "window" element.
  * - windowId: not the `window` object, but the ID of the
  *   element that will contain the message and the button(s).
- * - messageId: the ID of the element that will contain the
+ * - message.id: the ID of the element that will contain the
  *   message.
  * - buttonWrapId: the ID of the element that will contain
  *   the buttons. At least one button will exist.
@@ -58,11 +58,11 @@
  *     ]
  * });
  * with this config:
- * this.config = {
+ * this.conf = {
  *     target: document.body,
  *     screenId: 'alert-scr',
  *     windowId: 'alert-win',
- *     messageId: 'alert-msg',
+ *     message.id: 'alert-msg',
  *     buttonWrapId: 'alert-btns-wrap',
  *     buttonClass: 'alert-btn',
  *     okButtonText: 'okay',
@@ -93,28 +93,80 @@
 
 function Alert(params) {
 
-    this.config = {
+    this.conf = {
+        // The element that will receive the screen element.
         target: document.body,
-        screenId: 'alert-scr',
-        windowId: 'alert-win',
-        messageId: 'alert-msg',
-        buttonWrapId: 'alert-btns-wrap',
-        buttonClass: 'alert-btn',
-        okButtonText: 'okay',
-        equalButtonWidths: true,
-        defaultReturnValue: true,
-        defaultEscReturnVal: false
+
+        // The screen element, which will contain the window.
+        screen: {
+            id: 'alert-scr',
+            cssClass: 'alert-on'
+        },
+
+        // The element that will contain the message and the buttons.
+        window: {
+            id: 'alert-win',
+            cssClass: 'alert-on'
+        },
+
+        // The ID of the element that will contain the message.
+        message: {
+            id: 'alert-msg'
+        },
+
+        buttons: {
+            wrapElemId: 'alert-btns-wrap',
+            cssClass: 'alert-btn',
+            equalWidths: true,
+            okText: 'okay'
+        },
+
+        values: {
+            // The value returned by the default "ok" button.
+            defaultOk: true,
+            // The value returned when the user doesn't click a button.
+            defaultEsc: false
+        },
+
+        // The milliseconds to delay before removing the screen from the target.
+        dismissDelay: 500
+    };
+
+
+
+    this.initAction = function() {
+        this.act = {
+            message: null,
+            callback: null,
+            opts: null
+        };
+
+        this.vals = {
+            opts: null,
+            esc: null
+        };
+
+        this.elems = {
+            screen: null,
+            window: null,
+            message: null,
+            buttons: null
+        };
+
+        this.caller = null;
+        this.evt = null;
     };
 
 
 
     this.init = function(pobj) {
-        this.callback = ('callback' in pobj) ? pobj.callback : null;
-        this.message = ('message' in pobj) ? pobj.message : null;
-        this.opts = ('opts' in pobj) ? pobj.opts : null;
+        if ('message' in pobj) {
+            this.initAction();
 
-        if (this.message) {
-            this.reset();
+            this.act.message = pobj.message;
+            this.act.callback = ('callback' in pobj) ? pobj.callback : null;
+            this.act.opts = ('opts' in pobj) ? pobj.opts : null;
+
             this.makeItHappen();
         }
     };
@@ -122,15 +174,16 @@ function Alert(params) {
 
 
     this.reset = function() {
+        this.initAction();
         this.removeListeners();
-        this.divScreen = null;
-        this.divWindow = null;
-        this.divMessage = null;
-        this.divOpts = null;
-        this.optVals = null;
-        this.caller = null;
-        this.escReturnVal = null;
-        this.evt = null;
+        // this.elems.screen = null;
+        // this.elems.window = null;
+        // this.elems.message = null;
+        // this.elems.buttons = null;
+        // this.vals.opts = null;
+        // this.caller = null;
+        // this.vals.esc = null;
+        // this.evt = null;
     };
 
 
@@ -145,21 +198,21 @@ function Alert(params) {
 
     this.buildParts = function() {
         var screen = document.createElement('div');
-        screen.id = this.config.screenId;
-        this.divScreen = screen;
+        screen.id = this.conf.screen.id;
+        this.elems.screen = screen;
 
         var win = document.createElement('div');
-        win.id = this.config.windowId;
-        this.divWindow = win;
+        win.id = this.conf.window.id;
+        this.elems.window = win;
 
         var msg = document.createElement('div');
-        msg.id = this.config.messageId;
-        msg.innerHTML = this.message;
-        this.divMessage = msg;
+        msg.id = this.conf.message.id;
+        msg.innerHTML = this.act.message;
+        this.elems.message = msg;
 
         var optsBox = document.createElement('div');
-        optsBox.id = this.config.buttonWrapId;
-        this.divOpts = optsBox;
+        optsBox.id = this.conf.buttons.wrapElemId;
+        this.elems.buttons = optsBox;
 
         this.buildOpts();
     };
@@ -167,50 +220,54 @@ function Alert(params) {
 
 
     this.buildOpts = function() {
-        this.optVals = [ ];
+        if (!this.act.opts) {
+            this.act.opts = [
+                {txt: this.conf.buttons.okText,
+                 val: this.conf.values.defaultOk}
+            ];
+        }
 
-        if (this.opts) {
-            var btnsCount = this.opts.length;
-            var btnWidth = (this.config.equalButtonWidths)
-                ? this.equalButtonWidthPercent()
-                : 'auto';
+        var btnsCount = this.act.opts.length;
+        var btnWidth = (this.conf.buttons.equalWidths)
+            ? this.equalButtonWidthPercent()
+            : 'auto';
 
-            for (var o = 0; o < btnsCount; o++) {
-                var btn = document.createElement('div');
+        this.vals.opts = [ ];
 
-                btn.className = this.config.buttonClass;
-                btn.innerHTML = this.opts[o].txt;
-                btn.setAttribute('value', o);
-                btn.style.width = btnWidth;
+        for (var o = 0; o < btnsCount; o++) {
+            var btn = document.createElement('div');
 
-                this.divOpts.appendChild(btn);
-                this.optVals.push(this.opts[o].val);
+            btn.className = this.conf.buttons.cssClass;
+            btn.innerHTML = this.act.opts[o].txt;
+            btn.setAttribute('value', o);
+            btn.style.width = btnWidth;
 
-                if (this.opts[o].esc) {
-                    this.escReturnVal = this.opts[o].val;
-                }
+            this.elems.buttons.appendChild(btn);
+            this.vals.opts.push(this.act.opts[o].val);
+
+            if (this.act.opts[o].esc) {
+                this.vals.esc = this.act.opts[o].val;
             }
         }
 
-        else {
-            var btn = document.createElement('div');
+        this.vals.esc = this.conf.values.defaultEsc;
+    };
 
-            btn.className = this.config.buttonClass;
-            btn.innerHTML = this.config.okButtonText;
-            btn.setAttribute('value', 0);
 
-            this.divOpts.appendChild(btn);
-            this.optVals.push(this.config.defaultReturnValue);
-            this.escReturnVal = this.config.defaultEscReturnVal;
-        }
+
+    this.displayAlert = function() {
+        this.elems.window.appendChild(this.elems.message);
+        this.elems.window.appendChild(this.elems.buttons);
+        this.elems.screen.appendChild(this.elems.window);
+        this.conf.target.appendChild(this.elems.screen);
+        this.elems.screen.className = this.conf.screen.cssClass;
     };
 
 
 
     this.addListeners = function() {
-        var n = this.divOpts.childNodes.length;
-        for (var o = 0; o < n; o++) {
-            this.divOpts.childNodes[o].addEventListener('click', this, false);
+        for (var o = 0, n = this.elems.buttons.childNodes.length; o < n; o++) {
+            this.elems.buttons.childNodes[o].addEventListener('click', this, false);
         }
 
         window.addEventListener('keydown', this, false);
@@ -226,22 +283,9 @@ function Alert(params) {
 
 
 
-    this.displayAlert = function() {
-        this.divWindow.appendChild(this.divMessage);
-        this.divWindow.appendChild(this.divOpts);
-        this.divScreen.appendChild(this.divWindow);
-        this.config.target.appendChild(this.divScreen);
-    };
-
-
-
     this.handleEvent = function(evt) {
         if (!evt) {var evt = window.event;}
         this.evt = evt;
-
-console.log(evt);
-console.log(window.event);
-console.log(this.evt);
 
         this.evt.stopPropagation();
         // this.evt.preventDefault();
@@ -276,7 +320,7 @@ console.log(this.evt);
         this.caller = (this.evt.target) ? this.evt.target : this.evt.scrElement;
 
         while ((this.caller !== document.body) &&
-               (!this.caller.className == this.config.buttonClass)) {
+               (!this.caller.className == this.conf.buttons.cssClass)) {
             this.caller = this.caller.parentNode;
         }
 
@@ -287,43 +331,53 @@ console.log(this.evt);
 
 
     this.handleReturn = function() {
-        if (this.callback) {
+        if (this.act.callback) {
             var pos = parseInt(this.caller.getAttribute('value')),
-                cnt = this.optVals.length,
+                cnt = this.vals.opts.length,
                 val = null;
 
             out:
             for (var o = 0; o < cnt; o++) {
                 if (o == pos) {
-                    val = this.optVals[o];
+                    val = this.vals.opts[o];
                     break out;
                 }
             }
 
-            this.callback(val);
+            this.act.callback(val);
         }
     };
 
 
 
     this.escapeReturn = function() {
-        if ((this.callback) && (this.escReturnVal != null)) {
-            this.callback(this.escReturnVal);
+        if ((this.act.callback) && (this.vals.esc != null)) {
+            this.act.callback(this.vals.esc);
         }
     };
 
 
 
     this.removeAlert = function() {
-        this.config.target.removeChild(this.divScreen);
-        this.reset();
+        function dismiss(par, chi, out) {
+            par.removeChild(chi);
+            out();
+        }
+
+        this.elems.screen.className = '';
+
+        window.setTimeout(dismiss,
+                          this.conf.dismissDelay,
+                          this.conf.target,
+                          this.elems.screen,
+                          this.reset);
     };
 
 
 
     this.equalButtonWidthPercent = function() {
-        if (this.opts) {
-            return (100 / this.opts.length) + '%';
+        if (this.act.opts) {
+            return (100 / this.act.opts.length) + '%';
         }
         else {
             return '100%';

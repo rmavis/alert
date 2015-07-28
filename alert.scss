@@ -12,47 +12,53 @@
     width: 100vw;
     height: 100vh;
     z-index: 100;
-}
-
-
-#alert-scr {
     background-color: hsla(0, 0%, 0%, 0.75);
+
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    &.alert-on {
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
 }
 
 
 #alert-win {
-    @include abs_cent;
-    max-width: 80%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
     margin: 0;
     padding: 0;
-    border: 1px solid $color_dark_border;
-    @include border_radius(8);
-    background-color: $color_white;
-    color: $color_black;
+    max-width: 80%;
+
+    border: 1px solid hsl(0, 0%, 0%);
+    border-radius: 8px;
+
+    background-color: hsl(0, 0%, 100%);
+    color: hsl(0, 0%, 0%);
+
     text-align: center;
     overflow: hidden;
-
-    @media screen and (max-width: body_bound_m(-1)) {
-        width: 80%;
-    }
-    @media screen and (min-width: body_bound_m()) {
-    }
 }
 
 
 #alert-msg {
-    margin: grid(4) auto;
-    padding: block(0, 2);
-    font-size: font_size(1.5);
+    margin: 40px auto;
+    padding: 0 20px;
+    font-size: 23px;
+    line-height: 21px;
 }
 
 
 #alert-btns-wrap {
     display: table;
     width: 100%;
-    margin: grid(2) auto 0 auto;
+    margin: 20px auto 0 auto;
     padding: 0;
-    border-top: 1px solid $color_dark_border;
+    border-top: 1px solid hsl(0, 0%, 0%);
     border-collapse: collapse;
     vertical-align: middle;
 }
@@ -60,11 +66,11 @@
 
 .alert-btn {
     display: table-cell;
-    padding: block(2, 1);
+    padding: 20px 10px;
     margin: 0;
-    border-left: 1px solid $color_dark_border;
-    border-right: 1px solid $color_dark_border;
-    font-size: font_size(1.5);
+    border-left: 1px solid hsl(0, 0%, 0%);
+    border-right: 1px solid hsl(0, 0%, 0%);
+    font-size: 14px;
     text-transform: uppercase;
     cursor: pointer;
 
