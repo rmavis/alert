@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <link rel="stylesheet" media="all" href="alert.css" />
+    <script type="text/javascript" src="alert.js"></script>
+
+    <script>
+     function log(msg) {console.log(msg);}
+    </script>
+
+    <style>
+     body {
+       padding: 8em 2em;
+       text-align: center;
+       color: hsl(0, 0%, 0%);
+     }
+
+     h1, p {
+       max-width: 600px;
+       margin: 2em auto;
+     }
+
+     h1 {
+       text-align: left;
+       text-transform: uppercase;
+     }
+
+     p {
+       padding: 0 0.5em;
+       line-height: 1.45em;
+       text-align: left;
+     }
+
+     h1, p {
+       margin-bottom: 0.5em;
+     }
+
+     *[onclick] {
+       cursor: pointer;
+     }
+
+     *[onclick]:hover {
+       color: hsl(180, 75%, 50%);
+     }
+
+     code {
+       font-size: 1.125em;
+       padding: 0 0.25em;
+       background-color: hsl(0, 10%, 93%);
+       font-family: monospace;
+     }
+
+     .alert-box {
+       position: relative;
+       display: inline-block;
+       height: 200px;
+       width: 33%;
+     }
+
+     .alert-box p {
+       position: absolute;
+       top: 50%;
+       left: 50%;
+       transform: translate(-50%, -50%);
+       text-align: center;
+     }
+
+     .alert-box .alert-scr {
+       position: absolute;
+       height: 100%;
+       width: 100%;
+     }
+
+     .alert-box.bg-red .alert-scr {
+       background-color: hsl(0, 100%, 50%);
+     }
+
+     .alert-box.bg-green .alert-scr {
+       background-color: hsl(120, 100%, 50%);
+     }
+
+     .alert-box.bg-blue .alert-scr {
+       background-color: hsl(240, 100%, 50%);
+     }
+    </style>
+  </head>
+
+  <body>
+    <h1>Alert</h1>
+
+    <p>Is a function for creating good-looking, well-functioning alerts. The goal is to make it The Final Word on webpage alerts.</p>
+
+    <p onclick="new Alert({message: 'Howdy.'})">Click this paragraph to trigger an alert.</p>
+
+    <p onclick="new Alert({message: 'Do you like cheese?', opts: [{val:true,txt:'yes'}, {val:false,txt:'no'}]})">Click this one to trigger an alert with two buttons.</p>
+
+    <p onclick="new Alert({message: 'Are you lying?', opts: [{val:1,txt:'yes'}, {val:2,txt:'no'}, {val:3,txt:'maybe'}]})">Click this one to trigger an alert with three buttons.</p>
+
+    <p>You can specify the number, display text, and values associated with each button by passing Alert an array of tiny objects.</p>
+
+    <p>You can also pass the name of a callback function. If you do, Alert will send to that function the value of the button the user clicks.</p>
+
+    <p>To see this in action, open your browser's console and <span onclick="new Alert({message: 'Howdy...', opts: [{val:'pardner',txt:'pardner'},{val:'dingo',txt:'dingo'}], callback: log})">click here</span>.</p>
+
+    <p>Alerts can also be dismissed by clicking the screen containing the alert or by hitting the escape key. You can specify the value to pass to the callback by including <code>esc:true</code> in one of the <code>opts</code>.</p>
+
+    <p onclick="new Alert({message: 'You\'re lying, aren\'t you?', opts: [{val:'I knew it.',txt:'yes',esc:true}, {val:'Pssh, whatevs.',txt:'no'}], callback: log})">So this alert will assume you're lying unless you tell it otherwise.</p>
+
+    <p>Alerts are styled with CSS so they can have any transitions or contexts you specify.</p>
+
+    <p>By default, the alert element will be appended to the <code>document.body</code> but you can change that.</p>
+
+    <div id="red-alert" class="alert-box bg-red" onclick="new Alert({message: 'I\'m on red.', target: this})">
+      <p>Hi.</p>
+    </div><div id="green-alert" class="alert-box bg-green" onclick="new Alert({message: 'I\'m on green.', target: this})">
+      <p>Hi.</p>
+    </div><div id="blue-alert" class="alert-box bg-blue" onclick="new Alert({message: 'I\'m on blue.', target: this})">
+      <p>Hi.</p>
+    </div>
+
+    <p onclick="new Alert({message: 'You', target: document.getElementById('brown-alert')})">You</p>
+    <p onclick="new Alert({message: 'can', target: document.getElementById('brown-alert')})">can</p>
+    <p onclick="new Alert({message: 'pile', target: document.getElementById('brown-alert')})">pile</p>
+    <p onclick="new Alert({message: 'alerts', target: document.getElementById('brown-alert')})">alerts.</p>
+
+    <div id="brown-alert" class="alert-box">
+      <p onclick="new Alert({message: 'One here.', target: this.parentNode})">None here.</p>
+    </div>
+
+    <p onclick="new Alert({message: 'This one has a different default button.', button: {defaultOk: 'That\'s sweet.'}})">You can customize it in all kinds of sweet ways.</p>
+
+  </body>
+
+</html>

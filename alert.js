@@ -1,135 +1,138 @@
 /* ALERT
+ *
  * This is a function for creating good-looking alerts.
  *
- * All configuration options are in the `this.conf` object.
+ * Here's an example:
+ * Alert({
+ *     message: 'Do you want to see another alert?',
+ *     callback: seeMoreAlerts,
+ *     opts: [
+ *         {txt: "yes", val: true},
+ *         {txt: "no", val: false, esc: true}
+ *     ]
+ * });
  *
- * To make the alert look good, you need to use CSS. The relevant
- * CSS entries are included in `this.conf`, and are:
- * - screenId: the ID of the screen element, which is the
- *   container for the "window" element.
- * - windowId: not the `window` object, but the ID of the
- *   element that will contain the message and the button(s).
- * - message.id: the ID of the element that will contain the
- *   message.
- * - buttonWrapId: the ID of the element that will contain
- *   the buttons. At least one button will exist.
- * - buttonClass: the class name for the buttons.
+ * With the default configuration, this call will create this HTML:
+ * <div id="alert-scr">
+ *   <div id="alert-win">
+ *     <div id="alert-msg">Do you want to see another alert?</div>
+ *     <div id="alert-btns-wrap">
+ *       <div class="alert-btn" value="0" style="width: 50%;">yes</div>
+ *       <div class="alert-btn" value="1" style="width: 50%;">no</div>
+ *     </div>
+ *   </div>
+ * </div>
+ * and appended it to `document.body`. If the user clicks one of the
+ * buttons, the true/false value associated with that button will be
+ * passed to the callback function `seeMoreAlerts`. But if the user
+ * clicks the area outside the `alert-win` element or hits the escape
+ * key, then "false" will be sent to `seeMoreAlerts`.
+ *
+ * Definitions of terms:
+ * - The "screen" element will contain the "window". It is the
+ *   background to the element that contains the alert's message and
+ *   button(s).
+ * - The "window" is the element that contains the alert's message
+ *   and its button(s).
+ * - The "message" is the message.
+ * - The "buttons" element contains at least one "button" element
+ *   that the user can click. You can control the number of buttons
+ *   and the values associated with each via the `opts` array in the
+ *   parameter. If no `opts` are passed, a button will be created
+ *   using default values.
+ *
+ * To make your alert look good, you need to use CSS. The relevant
+ * CSS entries are included in the `this.defaults` object, and are:
+ * - screen: ID (`id`) and class name (`cssClass`)
+ * - window: ID and class name
+ * - message: ID and class name
+ * - buttons: ID and class name
+ * - button: class name, a boolean indicating whether the buttons
+ *   should have equal widths, and the default button text if no
+ *   options are passed
+ *
+ * The IDs and class names are both optional, but at least one
+ * should be given. These should match CSS IDs and classes.
+ *
+ * The `screen` object can also have a `toggleClass` key. If this is
+ * set, then that value will be added to the screen element after
+ * it is appended to the target element and then removed before the
+ * screen is removed. This is useful for triggering CSS transitions.
  *
  * The other configuration options are:
  * - target: the element that will receive the alert element.
  *   This defaults to `document.body`.
- * - okbuttonText: if no `opts` are passed at initialization,
- *   then this string will be used for the button that dismisses
- *   the alert.
- * - equalButtonWidths: a boolean determining whether to specify
- *   the widths of the buttons inline. The width will be a
- *   percentage, the result of dividing 100 by the number of
- *   options.
- * - defaultReturnValue: if a callback is specified at init but
- *   there are no options, then this value will be passed to
- *   the callback function.
- * - defaultEscReturnVal: identical to `defaultReturnValue` but
- *   this value will be passed to the callback if the user hits
- *   the escape key.
+ * - values: defaultOk, which is the default value returned when the
+ *   user clicks the default OK button (created if no `opts` are
+ *   passed), and defaultEsc, which is the default value returned
+ *   when the escape key is pressed.
+ * - dismissDelay: the number of milliseconds to wait before
+ *   removing the screen element from the target. This is useful for
+ *   triggering CSS transitions.
  *
- * To create a new alert, call `new Alert` with an object as
- * the parameter. The parameter can contain these keys:
+ * All configuration options are in the `this.defaults` object.
+ *
+ * To create a new alert, call `Alert` with an object as the
+ * parameter. The parameter should contain these keys:
  * - message (required): the text/HTML body of the alert.
- * - callback (optional): a function to call when dismissing the
- *   alert, either when one of the buttons is clicked or when
- *   the escape key it hit.
  * - opts (optional): an array of objects, each with these keys:
  *   - txt (required): the text displayed on the button.
  *   - val (required): the value associated with the button.
  *   - esc (optional): a boolean indicating whether to use this
  *     value as the parameter to the callback if the user hits
  *     the escape key.
+ *   If no `opts` are passed, then a button will be created that
+ *   displays the text in `this.defaults.button.defaultOk`. If a
+ *   callback is given, then this value will be passed to that,
+ *   unless the user escapes, in which case it will be passed the
+ *   value in `this.conf.values.defaultEsc`.
+ * - callback (optional): a function to call when dismissing the
+ *   alert.
  *
- * There can be any number of objects in the `opts` array. The
- * `val` of the button clicked will be passed to the callback.
+ * There can be any number of objects in the `opts` array. The `val`
+ * of the button clicked will be passed to the callback.
  *
- * So the result from this initialization:
- * new Alert({
- *     message: 'Do you want to remove this item from your cart?',
- *     callback: this.removeItemFromCart.bind(this),
- *     opts: [
- *         {txt: "keep", val: false},
- *         {txt: "remove", val: true}
- *     ]
- * });
- * with this config:
- * this.conf = {
- *     target: document.body,
- *     screenId: 'alert-scr',
- *     windowId: 'alert-win',
- *     message.id: 'alert-msg',
- *     buttonWrapId: 'alert-btns-wrap',
- *     buttonClass: 'alert-btn',
- *     okButtonText: 'okay',
- *     equalButtonWidths: true,
- *     defaultReturnValue: true
- * };
- * will be this element:
- * <div id="alert-scr">
- *   <div id="alert-win">
- *     <div id="alert-msg">Do you want to remove this item from your cart?</div>
- *     <div id="alert-btns-wrap">
- *       <div class="alert-btn" value="1" style="width: 50%;">keep</div>
- *       <div class="alert-btn" value="0" style="width: 50%;">remove</div>
- *     </div>
- *   </div>
- * </div>
- * appended to `document.body`.
- *
- * If the user clicks the `keep` button, then the bound function
- * `removeItemFromCart` will be called with `true` as the parameter.
- * 
- * If the user hits the escape key, then no callback will be triggered.
- * However, if one change is made:
- * {txt: "keep", val: false, esc: true},
- * then `removeItemFromCart` will be called with `false` as the parameter.
+ * If the `esc` value is set to true on one of the `opts`, then that
+ * value will be passed to the callback when the user dismisses the
+ * alert by hitting escape or by clicking the "screen" outside the
+ * "window".
  */
 
 
 function Alert(params) {
 
-    this.conf = {
-        // The element that will receive the screen element.
+    this.defaults = {
         target: document.body,
 
-        // The screen element, which will contain the window.
         screen: {
-            id: 'alert-scr',
-            cssClass: 'alert-on'
+            cssClass: 'alert-scr',
+            toggleClass: 'alert-fade'
         },
 
-        // The element that will contain the message and the buttons.
         window: {
-            id: 'alert-win',
-            cssClass: 'alert-on'
+            cssClass: 'alert-win'
         },
 
-        // The ID of the element that will contain the message.
         message: {
-            id: 'alert-msg'
+            cssClass: 'alert-msg'
         },
 
         buttons: {
-            wrapElemId: 'alert-btns-wrap',
+            cssClass: 'alert-btns-wrap',
+        },
+
+        button: {
             cssClass: 'alert-btn',
             equalWidths: true,
-            okText: 'okay'
+            defaultOk: 'okay'
         },
 
         values: {
-            // The value returned by the default "ok" button.
             defaultOk: true,
-            // The value returned when the user doesn't click a button.
             defaultEsc: false
         },
 
-        // The milliseconds to delay before removing the screen from the target.
-        dismissDelay: 500
+        dismissDelay: 200
     };
 
 
@@ -153,19 +156,21 @@ function Alert(params) {
             buttons: null
         };
 
+        this.conf = null;
         this.caller = null;
         this.evt = null;
     };
 
 
 
-    this.init = function(pobj) {
-        if ('message' in pobj) {
+    this.init = function(obj) {
+        if ('message' in obj) {
             this.initAction();
+            this.initConf(obj);
 
-            this.act.message = pobj.message;
-            this.act.callback = ('callback' in pobj) ? pobj.callback : null;
-            this.act.opts = ('opts' in pobj) ? pobj.opts : null;
+            this.act.message = obj.message;
+            this.act.callback = ('callback' in obj) ? obj.callback : null;
+            this.act.opts = ('opts' in obj) ? obj.opts : null;
 
             this.makeItHappen();
         }
@@ -173,17 +178,16 @@ function Alert(params) {
 
 
 
-    this.reset = function() {
-        this.initAction();
-        this.removeListeners();
-        // this.elems.screen = null;
-        // this.elems.window = null;
-        // this.elems.message = null;
-        // this.elems.buttons = null;
-        // this.vals.opts = null;
-        // this.caller = null;
-        // this.vals.esc = null;
-        // this.evt = null;
+    this.initConf = function(obj) {
+        this.conf = this.defaults;
+
+        for (var key in obj) {
+            if ((obj.hasOwnProperty(key)) &&
+                (this.conf.hasOwnProperty(key)) &&
+                (!this.act.hasOwnProperty(key))) {
+                this.conf[key] = obj[key];
+            }
+        }
     };
 
 
@@ -197,24 +201,23 @@ function Alert(params) {
 
 
     this.buildParts = function() {
-        var screen = document.createElement('div');
-        screen.id = this.conf.screen.id;
-        this.elems.screen = screen;
+        for (var key in this.elems) {
+            if (this.elems.hasOwnProperty(key)) {
+                this.elems[key] = document.createElement('div');
+                this.applyCssParts(this.elems[key], this.conf[key]);
+            }
+        }
 
-        var win = document.createElement('div');
-        win.id = this.conf.window.id;
-        this.elems.window = win;
-
-        var msg = document.createElement('div');
-        msg.id = this.conf.message.id;
-        msg.innerHTML = this.act.message;
-        this.elems.message = msg;
-
-        var optsBox = document.createElement('div');
-        optsBox.id = this.conf.buttons.wrapElemId;
-        this.elems.buttons = optsBox;
+        this.elems.message.innerHTML = this.act.message;
 
         this.buildOpts();
+    };
+
+
+
+    this.applyCssParts = function(elem, obj) {
+        if (obj.cssClass) {elem.className = obj.cssClass;}
+        if (obj.id) {elem.id = obj.id;}
     };
 
 
@@ -222,22 +225,23 @@ function Alert(params) {
     this.buildOpts = function() {
         if (!this.act.opts) {
             this.act.opts = [
-                {txt: this.conf.buttons.okText,
+                {txt: this.conf.button.defaultOk,
                  val: this.conf.values.defaultOk}
             ];
         }
 
+        this.vals.esc = this.conf.values.defaultEsc;
+        this.vals.opts = [ ];
+
         var btnsCount = this.act.opts.length;
-        var btnWidth = (this.conf.buttons.equalWidths)
+        var btnWidth = (this.conf.button.equalWidths)
             ? this.equalButtonWidthPercent()
             : 'auto';
-
-        this.vals.opts = [ ];
 
         for (var o = 0; o < btnsCount; o++) {
             var btn = document.createElement('div');
 
-            btn.className = this.conf.buttons.cssClass;
+            btn.className = this.conf.button.cssClass;
             btn.innerHTML = this.act.opts[o].txt;
             btn.setAttribute('value', o);
             btn.style.width = btnWidth;
@@ -249,8 +253,6 @@ function Alert(params) {
                 this.vals.esc = this.act.opts[o].val;
             }
         }
-
-        this.vals.esc = this.conf.values.defaultEsc;
     };
 
 
@@ -260,16 +262,28 @@ function Alert(params) {
         this.elems.window.appendChild(this.elems.buttons);
         this.elems.screen.appendChild(this.elems.window);
         this.conf.target.appendChild(this.elems.screen);
-        this.elems.screen.className = this.conf.screen.cssClass;
+
+        if (this.conf.screen.toggleClass) {
+            // To trigger the transition.
+            function alertApplyScreenToggleClass(elem, classname) {
+                elem.className += ' ' + classname;
+            }
+            window.setTimeout(alertApplyScreenToggleClass,
+                              0,
+                              this.elems.screen,
+                              this.conf.screen.toggleClass);
+        }
     };
 
 
 
     this.addListeners = function() {
-        for (var o = 0, n = this.elems.buttons.childNodes.length; o < n; o++) {
-            this.elems.buttons.childNodes[o].addEventListener('click', this, false);
+        var btns = this.elems.buttons.childNodes;
+        for (var o = 0, n = btns.length; o < n; o++) {
+            btns[o].addEventListener('click', this, false);
         }
 
+        this.elems.screen.addEventListener('click', this, false);
         window.addEventListener('keydown', this, false);
     };
 
@@ -277,7 +291,7 @@ function Alert(params) {
 
     this.removeListeners = function() {
         // The other listeners don't need to be removed
-        // because the object gets removed.
+        // because the elements will be removed.
         window.removeEventListener('keydown', this);
     };
 
@@ -290,27 +304,33 @@ function Alert(params) {
         this.evt.stopPropagation();
         // this.evt.preventDefault();
 
-        var eventType = this.evt.type;
+        var eventType = this.evt.type,
+            dismiss = false,
+            isEsc = false;
 
         if (eventType == 'click') {
             if (this.getCallerFromEvent()) {
-                this.handleReturn();
-                this.removeAlert();
+                isEsc = (this.caller == this.elems.screen) ? true : false;
+                dismiss = true;
             }
             else {
-                console.log("Couldn't get caller from click event.");
+                // console.log("Couldn't get caller from click event.");
             }
         }
-
         else if (eventType == 'keydown') {
             if (this.evt.keyCode == 27) {  // The esc key.
-                this.escapeReturn();
-                this.removeAlert();
+                dismiss = true;
+                isEsc = true;
             }
         }
-
         else {
             console.log("Unhandled event type: " + eventType);
+        }
+
+        if (dismiss) {
+            if (isEsc) {this.escapeReturn();}
+            else {this.valueReturn();}
+            this.removeAlert();
         }
     };
 
@@ -319,31 +339,29 @@ function Alert(params) {
     this.getCallerFromEvent = function() {
         this.caller = (this.evt.target) ? this.evt.target : this.evt.scrElement;
 
-        while ((this.caller !== document.body) &&
-               (!this.caller.className == this.conf.buttons.cssClass)) {
-            this.caller = this.caller.parentNode;
+        if (this.caller == this.elems.screen) {
+            return true;
         }
+        else {
+            // If the use clicks, eg, the message, then this
+            // will bubble all the way to the document.body.
+            while ((this.caller != document.body) &&
+                   (this.caller.className != this.conf.button.cssClass)) {
+                this.caller = this.caller.parentNode;
+            }
 
-        var ret = (this.caller == document.body) ? false : true;
-        return ret;
+            // And if that's true, the event handler shouldn't respond.
+            if (this.caller == document.body) {return false;}
+            else {return true;}
+        }
     };
 
 
 
-    this.handleReturn = function() {
+    this.valueReturn = function() {
         if (this.act.callback) {
             var pos = parseInt(this.caller.getAttribute('value')),
-                cnt = this.vals.opts.length,
-                val = null;
-
-            out:
-            for (var o = 0; o < cnt; o++) {
-                if (o == pos) {
-                    val = this.vals.opts[o];
-                    break out;
-                }
-            }
-
+                val = this.vals.opts[pos];
             this.act.callback(val);
         }
     };
@@ -351,7 +369,7 @@ function Alert(params) {
 
 
     this.escapeReturn = function() {
-        if ((this.act.callback) && (this.vals.esc != null)) {
+        if (this.act.callback) {
             this.act.callback(this.vals.esc);
         }
     };
@@ -359,18 +377,30 @@ function Alert(params) {
 
 
     this.removeAlert = function() {
-        function dismiss(par, chi, out) {
-            par.removeChild(chi);
-            out();
+        // This triggers the CSS transition.
+        if (this.conf.screen.toggleClass) {
+            this.applyCssParts(this.elems.screen,
+                               this.conf.screen);
         }
 
-        this.elems.screen.className = '';
+        // This removes the Alert element from the DOM.
+        function alertRemoveScreenFromTarget(wrap, alert, done) {
+            wrap.removeChild(alert);
+            done();
+        }
 
-        window.setTimeout(dismiss,
+        window.setTimeout(alertRemoveScreenFromTarget,
                           this.conf.dismissDelay,
                           this.conf.target,
                           this.elems.screen,
-                          this.reset);
+                          this.reset.bind(this));
+    };
+
+
+
+    this.reset = function() {
+        this.initAction();
+        this.removeListeners();
     };
 
 
@@ -378,8 +408,7 @@ function Alert(params) {
     this.equalButtonWidthPercent = function() {
         if (this.act.opts) {
             return (100 / this.act.opts.length) + '%';
-        }
-        else {
+        } else {
             return '100%';
         }
     };
@@ -388,5 +417,4 @@ function Alert(params) {
 
     // This needs to stay down here.
     if (typeof params == 'object') {this.init(params);}
-    else {this.init({});}
 }

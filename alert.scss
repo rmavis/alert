@@ -3,7 +3,7 @@
  */
 
 
-#alert-scr {
+.alert-scr {
     position: fixed;
     top: 0;
     left: 0;
@@ -15,16 +15,16 @@
     background-color: hsla(0, 0%, 0%, 0.75);
 
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.1s ease;
 
-    &.alert-on {
+    &.alert-fade {
         opacity: 1;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.1s ease;
     }
 }
 
 
-#alert-win {
+.alert-win {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -45,7 +45,7 @@
 }
 
 
-#alert-msg {
+.alert-msg {
     margin: 40px auto;
     padding: 0 20px;
     font-size: 23px;
@@ -53,7 +53,7 @@
 }
 
 
-#alert-btns-wrap {
+.alert-btns-wrap {
     display: table;
     width: 100%;
     margin: 20px auto 0 auto;
