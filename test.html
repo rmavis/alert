@@ -91,44 +91,44 @@
 
     <p>Is a function for creating good-looking, well-functioning alerts. The goal is to make it The Final Word on webpage alerts.</p>
 
-    <p onclick="new Alert({message: 'Howdy.'})">Click this paragraph to trigger an alert.</p>
+    <p onclick="Alert('Howdy.')">Click this paragraph to trigger an alert.</p>
 
-    <p onclick="new Alert({message: 'Do you like cheese?', opts: [{val:true,txt:'yes'}, {val:false,txt:'no'}]})">Click this one to trigger an alert with two buttons.</p>
+    <p onclick="Alert({message: 'Do you like cheese?', opts: [{val:true,txt:'yes'}, {val:false,txt:'no'}]})">Click this one to trigger an alert with two buttons.</p>
 
-    <p onclick="new Alert({message: 'Are you lying?', opts: [{val:1,txt:'yes'}, {val:2,txt:'no'}, {val:3,txt:'maybe'}]})">Click this one to trigger an alert with three buttons.</p>
+    <p onclick="Alert({message: 'Are you lying?', opts: [{val:1,txt:'yes'}, {val:2,txt:'no'}, {val:3,txt:'maybe'}]})">Click this one to trigger an alert with three buttons.</p>
 
     <p>You can specify the number, display text, and values associated with each button by passing Alert an array of tiny objects.</p>
 
     <p>You can also pass the name of a callback function. If you do, Alert will send to that function the value of the button the user clicks.</p>
 
-    <p>To see this in action, open your browser's console and <span onclick="new Alert({message: 'Howdy...', opts: [{val:'pardner',txt:'pardner'},{val:'dingo',txt:'dingo'}], callback: log})">click here</span>.</p>
+    <p>To see this in action, open your browser's console and <span onclick="Alert({message: 'Howdy...', opts: [{val:'pardner',txt:'pardner'},{val:'dingo',txt:'dingo'}], callback: log})">click here</span>.</p>
 
     <p>Alerts can also be dismissed by clicking the screen containing the alert or by hitting the escape key. You can specify the value to pass to the callback by including <code>esc:true</code> in one of the <code>opts</code>.</p>
 
-    <p onclick="new Alert({message: 'You\'re lying, aren\'t you?', opts: [{val:'I knew it.',txt:'yes',esc:true}, {val:'Pssh, whatevs.',txt:'no'}], callback: log})">So this alert will assume you're lying unless you tell it otherwise.</p>
+    <p onclick="Alert({message: 'You\'re lying, aren\'t you?', opts: [{val:'I knew it.',txt:'yes',esc:true}, {val:'Pssh, whatevs.',txt:'no'}], callback: log})">So this alert will assume you're lying unless you tell it otherwise.</p>
 
     <p>Alerts are styled with CSS so they can have any transitions or contexts you specify.</p>
 
     <p>By default, the alert element will be appended to the <code>document.body</code> but you can change that.</p>
 
-    <div id="red-alert" class="alert-box bg-red" onclick="new Alert({message: 'I\'m on red.', target: this})">
+    <div id="red-alert" class="alert-box bg-red" onclick="Alert({message: 'I\'m on red.', target: this})">
       <p>Hi.</p>
-    </div><div id="green-alert" class="alert-box bg-green" onclick="new Alert({message: 'I\'m on green.', target: this})">
+    </div><div id="green-alert" class="alert-box bg-green" onclick="Alert({message: 'I\'m on green.', target: this})">
       <p>Hi.</p>
-    </div><div id="blue-alert" class="alert-box bg-blue" onclick="new Alert({message: 'I\'m on blue.', target: this})">
+    </div><div id="blue-alert" class="alert-box bg-blue" onclick="Alert({message: 'I\'m on blue.', target: this})">
       <p>Hi.</p>
     </div>
 
-    <p onclick="new Alert({message: 'You', target: document.getElementById('brown-alert')})">You</p>
-    <p onclick="new Alert({message: 'can', target: document.getElementById('brown-alert')})">can</p>
-    <p onclick="new Alert({message: 'pile', target: document.getElementById('brown-alert')})">pile</p>
-    <p onclick="new Alert({message: 'alerts', target: document.getElementById('brown-alert')})">alerts.</p>
+    <p onclick="Alert({message: 'You', target: document.getElementById('brown-alert')})">You</p>
+    <p onclick="Alert({message: 'can', target: document.getElementById('brown-alert')})">can</p>
+    <p onclick="Alert({message: 'pile', target: document.getElementById('brown-alert')})">pile</p>
+    <p onclick="Alert({message: 'alerts', target: document.getElementById('brown-alert')})">alerts.</p>
 
     <div id="brown-alert" class="alert-box">
-      <p onclick="new Alert({message: 'One here.', target: this.parentNode})">None here.</p>
+      <p onclick="Alert({message: 'One here.', target: this.parentNode})">None here.</p>
     </div>
 
-    <p onclick="new Alert({message: 'This one has a different default button.', button: {defaultOk: 'That\'s sweet.'}})">You can customize it in all kinds of sweet ways.</p>
+    <p onclick="Alert({message: 'This one has a different default button.', button: {defaultOk: 'That\'s sweet.'}})">You can customize it in all kinds of sweet ways.</p>
 
   </body>
 
