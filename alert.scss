@@ -16,7 +16,7 @@
     height: 100%;
     width: 100vw;
     height: 100vh;
-    z-index: 100;
+    z-index: 10;
     background-color: hsla(0, 0%, 0%, 0.75);
 
     opacity: 0;
@@ -194,5 +194,6 @@
     font-size: 40px;
     letter-spacing: 2px;
     font-weight: bold;
+    z-index: 100;
     background-color: hsl(210, 100%, 50%);
 }

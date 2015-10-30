@@ -282,8 +282,7 @@ var Alert = (function () {
             console.log(new_conf);
         }
 
-        conf = new_conf;
-        return conf;
+        return new_conf;
     }
 
 
@@ -421,10 +420,10 @@ var Alert = (function () {
         }
 
         var bk_conf = JSON.parse(JSON.stringify(conf));
-        makeNewConf(conf_obj);
+        conf = makeNewConf(conf_obj);
 
         var elem = displayNewAlert(alert_obj);
-        makeNewConf(bk_conf);
+        conf = makeNewConf(bk_conf);
 
         return elem;
     }
@@ -689,8 +688,10 @@ var Alert = (function () {
                 dismiss = (caller.hasAttribute(kills.attr)) ? true : false;
 
                 if (dismiss) {
-                    is_esc = (caller.className == conf.screen.css_class) ? true : false;
                     entry = pullKeepEntryFromCaller(caller);
+                    is_esc = (caller.className.split(' ').indexOf(entry.conf.screen.css_class) > -1)
+                        ? true
+                        : false;
                 }
             }
 
@@ -842,7 +843,7 @@ var Alert = (function () {
         if (entry.conf.log) {
             console.log("Dismissing the alert by its entry in the keep.");
         }
-
+console.log("Is esc? " + is_esc);
         removeAlert(entry);
 
         if (entry.callback) {
@@ -915,7 +916,8 @@ var Alert = (function () {
         },
 
         setConf: function(conf_obj) {
-            return makeNewConf(conf_obj);
+            conf = makeNewConf(conf_obj);
+            return conf;
         },
 
         resetConf: function() {
@@ -924,60 +926,3 @@ var Alert = (function () {
 
     };
 })();
-
-
-
-
-// window.onload = (function () {
-
-//     // Basic notification test.
-//     console.log("\n\n\nTesting simple notification\n");
-//     var alert_1 = Alert.new("howdy");
-//     console.log("\n\n\nKilling it with `kill`.\n");
-//     Alert.kill(alert_1);
-
-
-//     // Simple with autokill.
-//     console.log("\n\n\nTesting notification with autokill\n");
-//     var alert_2 = Alert.new("howdy", {delay: {autokill: 2500}});
-
-
-//     // Full on.
-//     console.log("\n\n\nTesting alert with many settings and opts.\n");
-//     var alert_3 = Alert.new(
-//         {
-//             message: "WHAT HATH GOD WROUGHT",
-//             opts: [
-//                 {txt: 'nothing much', val: 'tootay'},
-//                 {txt: 'something cool', val: 'frootay'},
-//                 {txt: 'pretty whatever', val: 'snootay'},
-//                 {txt: 'mad decent', val: 'pootay'},
-//             ]
-//         },
-//         {
-//             screen: {toggle_class: 'screen-whoopie'},
-//             message: {tag: 'h1', css_class: 'heads-up-message'},
-//             button: {css_class: 'alert-buttons-are-rad'},
-//             delay: {dismiss: 0},
-//             callback: Admin.howdy
-//         }
-//     );
-
-
-//     // Same as before but with default opts.
-//     console.log("\n\n\nTesting alert with settings and default opts.\n");
-//     var alert_4 = Alert.new(
-//       {
-//             message: "WHAT HATH BOG BROUGHT",
-//             opts: true
-//         },
-//         {
-//             screen: {toggle_class: 'screen-whoopie'},
-//             message: {tag: 'h1', css_class: 'heads-up-message'},
-//             button: {css_class: 'alert-buttons-are-rad'},
-//             delay: {dismiss: 0},
-//             callback: Admin.howdy
-//         }
-//     );
-
-// });

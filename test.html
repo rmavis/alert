@@ -29,7 +29,7 @@
 
     <p>You can also pass the name of a callback function. If you do, Alert will send to that function the value of the button the user clicks.</p>
 
-    <p>To see this in action, open your browser's console and <span onclick="Alert.new({message: 'Howdy...', opts: [{val:'pardner',txt:'pardner'},{val:'dingo',txt:'dingo'}], callback: log})">click here</span>.</p>
+    <p>To see this in action, open your browser's console and <span onclick="Alert.new({message: 'Howdy...', opts: [{val:'pardner',txt:'pardner'},{val:'dingo',txt:'dingo'}], callback: log}, {values: {default_esc: 'You clicked outside the box.'}})">click here</span>.</p>
 
     <p>And there's optional console logging. To see that, <span onclick="Alert.new({message: 'Lots of logging.', opts: true}, {log: true})">click here</span>.</p>
 
