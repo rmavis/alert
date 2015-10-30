@@ -249,7 +249,7 @@ var Alert = (function () {
 
             // If this is true, then Alert.js will write messages to
             // your console.
-            log: false
+            log: true
         }
     }
 
@@ -580,15 +580,16 @@ var Alert = (function () {
 
 
     function addAlertToKeep(alert_obj) {
-        if (conf.log) {
-            console.log("Adding alert to keep with key: " + alert_obj.id);
-        }
-
         // Add the alert's conf in case of customizations. So the
         // procedures started by the event listeners will use the
         // alert's conf, not the global conf.
         alert_obj.conf = JSON.parse(JSON.stringify(conf));
         alerts_keep[alert_obj.id] = alert_obj;
+
+        if (conf.log) {
+            console.log("Adding alert to keep with key: " + alert_obj.id);
+            console.log("Entries in the keep: " + Object.keys(alerts_keep).length);
+        }
     }
 
 
@@ -689,9 +690,13 @@ var Alert = (function () {
 
                 if (dismiss) {
                     entry = pullKeepEntryFromCaller(caller);
-                    is_esc = (caller.className.split(' ').indexOf(entry.conf.screen.css_class) > -1)
-                        ? true
-                        : false;
+
+                    if (entry) {
+                        is_esc = (caller.className.split(' ')
+                                  .indexOf(entry.conf.screen.css_class) > -1)
+                            ? true
+                            : false;
+                    }
                 }
             }
 
@@ -767,6 +772,7 @@ var Alert = (function () {
             console.log("Getting keep entry from caller.");
             console.log("Entry:");
             console.log(entry);
+            console.log("Remaining entries in the keep: " + Object.keys(alerts_keep).length);
         }
 
         return entry;
@@ -786,6 +792,10 @@ var Alert = (function () {
             var key = keys.shift();
             entry = alerts_keep[key];
             delete alerts_keep[key];
+
+            if (conf.log) {
+                console.log("Remaining entries in the keep: " + Object.keys(alerts_keep).length);
+            }
         }
 
         else {
