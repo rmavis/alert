@@ -843,7 +843,7 @@ var Alert = (function () {
         if (entry.conf.log) {
             console.log("Dismissing the alert by its entry in the keep.");
         }
-console.log("Is esc? " + is_esc);
+
         removeAlert(entry);
 
         if (entry.callback) {
