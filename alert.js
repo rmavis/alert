@@ -235,7 +235,7 @@ var Alert = (function () {
             // You can delay the alert's dismissal.
             delay: {
                 // This is the delay between click and dismiss.
-                dismiss: 200,
+                dismiss: 0,
 
                 // This is the delay for autokilling, mostly useful
                 // for ephemeral notifications. If this is less than
@@ -249,7 +249,7 @@ var Alert = (function () {
 
             // If this is true, then Alert.js will write messages to
             // your console.
-            log: true
+            log: false
         }
     }
 
