@@ -1,231 +1,412 @@
-/* ALERT
+/*
+ * ALERT
  *
- * This is a function for creating good-looking alerts.
+ * This is a library for creating good-looking notifications and
+ * alerts. An alert and a notification are nearly identical, so the
+ * motivation behind this library was to enable easy management of
+ * both.
  *
- * Here's an example:
- * Alert({
- *     message: 'Do you want to see another alert?',
- *     callback: seeMoreAlerts,
+ * In this documenation, an "alert" will have one or more buttons,
+ * and a "notification" will have zero. And "alert" will be used as
+ * the generic term since it's shorter.
+ *
+ *
+ * USAGE
+ *
+ * This call:
+ * Alert.new("Howdy, neighbor.");
+ *
+ * will create HTML that looks something like this:
+ * <div class="alert-scr alert-fade" killable="y" timestamp="alert-1446145337248">
+ *   <div class="alert-win" killable="y">
+ *     <div class="alert-msg" killable="y">Howdy, neighbor.</div>
+ *   </div>
+ * </div>
+ *
+ * and append that element to the element ID'd `notifications-wrap`.
+ *
+ * This call:
+ * Alert.new(
+ *   {
+ *     message: "WHAT HATH BOG BROUGHT",
  *     opts: [
- *         {txt: "yes", val: true},
- *         {txt: "no", val: false, esc: true}
+ *       {txt: 'nothing much', val: 'foo', esc: true},
+ *       {txt: 'something cool', val: 'bar'},
+ *       {txt: 'something lame', val: 'buz'},
+ *       {txt: 'something decent', val: 'wat'}
  *     ]
- * });
+ *   },
+ *   {
+ *     screen: {toggle_class: 'screen-whoopie'},
+ *     message: {tag: 'h1', css_class: 'heads-up-message'},
+ *     button: {css_class: 'rad-alert-buttons'},
+ *     delay: {dismiss: 0},
+ *     callback: Admin.howdy
+ *   }
+ * );
  *
- * With the default configuration, this call will create this HTML:
- * <div id="alert-scr">
- *   <div id="alert-win">
- *     <div id="alert-msg">Do you want to see another alert?</div>
- *     <div id="alert-btns-wrap">
- *       <div class="alert-btn" value="0" style="width: 50%;">yes</div>
- *       <div class="alert-btn" value="1" style="width: 50%;">no</div>
+ * will create something like this:
+ * <div class="alert-scr alert-fade" killable="y" timestamp="alert-1446145734142">
+ *   <div class="alert-win">
+ *     <h1 class="heads-up-message">WHAT HATH BOG BROUGHT</h1>
+ *     <div class="alert-btns-wrap">
+ *       <div class="rad-alert-buttons" style="width:25%" value="0" killable="y">nothing much</div>
+ *       <div class="rad-alert-buttons" style="width:25%" value="1" killable="y">something cool</div>
+ *       <div class="rad-alert-buttons" style="width:25%" value="2" killable="y">something lame</div>
+ *       <div class="rad-alert-buttons" style="width:25%" value="3" killable="y">something decent</div>
  *     </div>
  *   </div>
  * </div>
- * and appended it to `document.body`. If the user clicks one of the
- * buttons, the true/false value associated with that button will be
- * passed to the callback function `seeMoreAlerts`. But if the user
- * clicks the area outside the `alert-win` element or hits the escape
- * key, then "false" will be sent to `seeMoreAlerts`.
+ *
+ * and append it to the same element as before, since no new target
+ * was ID'd. When one of the buttons are clicked, or when the user
+ * hits the escape key, the callback function `Admin.howdy` will be
+ * called, and passed either the `val` corresponding to the button
+ * or the `val` of the `opt` with `esc: true`, so in this case
+ * `foo`. If no `opt` was designated the `esc` value, then the
+ * callback would be passed the `default_esc` value.
+ *
+ * There are many configuration options. The defaults are specified
+ * in the `getDefaultConfig` function. Each option is explained in
+ * there.
+ *
+ * Since this library is intended to be used for both alerts and
+ * notifications, many of both can be created, and every one can
+ * have its own settings. The user experience of each will depend on
+ * your CSS.
+ *
+ *
+ * DEPENDENCIES
+ * - Utils.js for utility functions.
+ *
+ *
+ * DETAILS
  *
  * Definitions of terms:
- * - The "screen" element will contain the "window". It is the
- *   background to the element that contains the alert's message and
- *   button(s).
- * - The "window" is the element that contains the alert's message
- *   and its button(s).
- * - The "message" is the message.
+ * - The "message" element will contain the content of the alert.
+ *   It can be a string or an element.
  * - The "buttons" element contains at least one "button" element
  *   that the user can click. You can control the number of buttons
  *   and the values associated with each via the `opts` array in the
- *   parameter. If no `opts` are passed, a button will be created
- *   using default values.
+ *   parameter. You can pass the boolean `true` instead of an array
+ *   to use the default button. If no `opts` are passed, there will
+ *   be no buttons.
+ * - The "window" is the element that contains the alert's message
+ *   and its button(s), if there are any.
+ * - The "screen" element will contain the "window".
  *
- * To make your alert look good, you need to use CSS. The relevant
- * CSS entries are included in the `this.defaults` object, and are:
- * - screen: ID (`id`) and class name (`cssClass`)
- * - window: ID and class name
- * - message: ID and class name
- * - buttons: ID and class name
- * - button: class name, a boolean indicating whether the buttons
- *   should have equal widths, and the default button text if no
- *   options are passed
+ * Those terms are used in the configuration object.
  *
- * The IDs and class names are both optional, but at least one
- * should be given. These should match CSS IDs and classes.
+ * There are four public methods.
  *
- * The `screen` object can also have a `toggleClass` key. If this is
- * set, then that value will be added to the screen element after
- * it is appended to the target element and then removed before the
- * screen is removed. This is useful for triggering CSS transitions.
+ * Use the `new` method to create a new alert. It accepts up to two
+ * parameters. To create a notification, the first should be a
+ * string. To create an alert, the first should be an object with up
+ * to three keys:
+ * - message, being the body of the alert. This is required.
+ * - callback, being the function to call when dismissing this
+ *   alert. This is optional.
+ * - opts, being either the boolean `true` or an array of objects.
+ *   The buttons will be built from those objects, and each must
+ *   contain two keys: `txt`, being the text of the button, and
+ *   `val`, being the value associated with the button, which will
+ *   be passed to the callback if the user clicks the button. One of
+ *   these can also have an `esc: true`. If one does, then that
+ *   `val` will be passed to the callback when the user either
+ *   clicks the "screen" or hits the escape key.
  *
- * The other configuration options are:
- * - target: the element that will receive the alert element.
- *   This defaults to `document.body`.
- * - values: defaultOk, which is the default value returned when the
- *   user clicks the default OK button (created if no `opts` are
- *   passed), and defaultEsc, which is the default value returned
- *   when the escape key is pressed.
- * - dismissDelay: the number of milliseconds to wait before
- *   removing the screen element from the target. This is useful for
- *   triggering CSS transitions.
+ * When an alert is created, event listeners are added to the
+ * relevant elements. If there are `opts`, then each button will be
+ * clickable. If not, then the message will be. And in both cases,
+ * the "screen" will be clickable, and the window will listen for
+ * keypresses. It will only react to the escape key, which will
+ * dismiss the most recent alert.
  *
- * All configuration options are in the `this.defaults` object.
+ * `new` returns an object containing five keys:
+ * - id, being the identifying attribute for the topmost element
+ * - elem, being the alert element
+ * - opts, being an object containing three keys:
+ *   - elem, being the element containing the buttons, if there are
+ *     any
+ *   - vals, being the values corresponding to each button
+ *   - esc, being the escape value
+ * - callback, being the callback function
+ * - conf, being the alert's configuration options
  *
- * To create a new alert, call `Alert` with an object as the
- * parameter. The parameter should contain these keys:
- * - message (required): the text/HTML body of the alert.
- * - opts (optional): an array of objects, each with these keys:
- *   - txt (required): the text displayed on the button.
- *   - val (required): the value associated with the button.
- *   - esc (optional): a boolean indicating whether to use this
- *     value as the parameter to the callback if the user hits
- *     the escape key.
- *   If no `opts` are passed, then a button will be created that
- *   displays the text in `this.defaults.button.defaultOk`. If a
- *   callback is given, then this value will be passed to that,
- *   unless the user escapes, in which case it will be passed the
- *   value in `this.conf.values.defaultEsc`.
- * - callback (optional): a function to call when dismissing the
- *   alert.
+ * You can pass that object to the public `kill` method to kill the
+ * alert.
  *
- * There can be any number of objects in the `opts` array. The `val`
- * of the button clicked will be passed to the callback.
+ * You can change the session's configuration options by passing an
+ * object with any subset of the structure of the default config
+ * object to `setConf`. And you can revert to the defaults by
+ * calling `resetConf`.
  *
- * If the `esc` value is set to true on one of the `opts`, then that
- * value will be passed to the callback when the user dismisses the
- * alert by hitting escape or by clicking the "screen" outside the
- * "window".
  */
 
 
-var MakeAlert = (function () {
+var Alert = (function () {
 
-    var defaults = {
-        target: {
-            target: document.body
-        },
+    function getDefaultConfig() {
+        return {
+            // The `target` is the element that the alert will get
+            // added into.
+            target: {
+                // You can specify an element ID.
+                id: false,  // 'notifications-wrap',
 
-        screen: {
-            cssClass: 'alert-scr',
-            toggleClass: 'alert-fade'
-        },
+                // Or you can specify an element. If both are not
+                // false, then the ID will take precedence. If
+                // both are false, then the target will be
+                // `document.body`.
+                elem: false
+            },
 
-        window: {
-            cssClass: 'alert-win'
-        },
+            // The `screen` is the outermost wrapper for the alert.
+            // It is useful for, eg, covering the `target` with an
+            // overlay, with the alert's `window` in the center.
+            screen: {
+                // To build the screen, we need a tagname...
+                tag: 'div',
 
-        message: {
-            cssClass: 'alert-msg'
-        },
+                // and a CSS class...
+                css_class: 'alert-scr',
 
-        buttons: {
-            cssClass: 'alert-btns-wrap',
-        },
+                // and, if you want to trigger a transition, this
+                // class will be added and removed at the right
+                // times.
+                toggle_class: 'alert-fade'
+            },
 
-        button: {
-            cssClass: 'alert-btn',
-            equalWidths: true,
-            defaultOk: 'okay'
-        },
+            // The `window` contains the `message` and the `buttons`,
+            // if any buttons exist.
+            window: {
+                // It needs a tagname...
+                tag: 'div',
 
-        values: {
-            defaultOk: true,
-            defaultEsc: false
-        },
+                // and a CSS class.
+                css_class: 'alert-win'
+            },
 
-        dismissDelay: 200
-    };
+            // The `message` contains the body content of the alert.
+            message: {
+                // It needs a tagname...
+                tag: 'div',
 
+                // and a CSS class.
+                css_class: 'alert-msg'
+            },
 
-    var act = {
-        text: null,
-        callback: null,
-        opts: null
-    };
+            // The `buttons` element contains the buttons.
+            buttons: {
+                // It needs a tagname...
+                tag: 'div',
 
+                // and a CSS class.
+                css_class: 'alert-btns-wrap'
+            },
 
-    var vals = {
-        opts: null,
-        esc: null
-    };
+            // Each `button`...
+            button: {
+                // needs a tagname...
+                tag: 'div',
 
+                // and a CSS class.
+                css_class: 'alert-btn'
+            },
 
-    var elems = {
-        screen: null,
-        window: null,
-        message: null,
-        buttons: null
-    };
+            // These are the settings for the default button, used
+            // when `opts: true` or when the alert is a notification
+            // and `use_default` is true.
+            values: {
+                // This indicates whether you want to use these
+                // values with notifications.
+                use_default: false,
 
+                // This will be the content of the button.
+                default_txt: 'okay',
 
-    var conf = null,
-        caller = null;
+                // This will be value associated with that button.
+                default_val: true,
 
+                // This will be the value if the user hits escape.
+                default_esc: false
+            },
 
+            // You can delay the alert's dismissal.
+            delay: {
+                // This is the delay between click and dismiss.
+                dismiss: 200,
 
-    function make(obj) {
-console.log(obj);
-console.log(defaults);
-        if ((typeof obj == 'object') && ('text' in obj)) {
-            initObjs(obj);
-            buildParts();
-            addListeners();
-            displayAlert();
+                // This is the delay for autokilling, mostly useful
+                // for ephemeral notifications. If this is less than
+                // 1, the alert will not self destruct.
+                autokill: 0
+            },
+
+            // If you want to use the same callback for every alert,
+            // name that function here.
+            callback: false,
+
+            // If this is true, then Alert.js will write messages to
+            // your console.
+            log: false
         }
-    };
+    }
+
+
+    var conf = getDefaultConfig(),
+
+        // This keeps the alert objects. The keys are the timestamp
+        // IDs generated for each.
+        alerts_keep = { },
+
+        // This specifies the element's attribute read and used to
+        // identify the alert in the keep.
+        kills = {
+            stamp_id: 'timestamp',
+            attr: 'killable'
+        };
 
 
 
-    function initObjs(confobj) {
-        act = fillObj(act, confobj);
-console.log("Act is now:");
-console.log(act);
-console.log(defaults);
-        conf = fillObj(defaults, confobj);
-console.log("Conf is now:");
-console.log(conf);
+    function makeNewConf(conf_obj) {
+        if (conf.log) {
+            console.log("Pulling new config settings from:");
+            console.log(conf_obj);
+        }
+
+        var new_conf = Utils.sieve(conf, conf_obj);
+
+        if (conf.log) {
+            console.log("New config settings:");
+            console.log(new_conf);
+        }
+
+        conf = new_conf;
+        return conf;
     }
 
 
 
-    function clearObjs() {
-        act = fillObj(act);
-        conf = fillObj(conf);
+    function resetConf() {
+        if (conf.log) {
+            console.log("Resetting config to default.");
+        }
+
+        conf = getDefaultConfig();
+        return conf;
     }
 
 
 
-    function fillObj(obj, refobj) {
-        var ret = obj;
-console.log("Filling object:");
-console.log(obj);
-console.log("With reference:");
-console.log(refobj);
-        if (typeof refobj == 'undefined') {
-console.log("Undefined reference object");
-            for (var key in ret) {
-                if (ret.hasOwnProperty(key)) {
-                    if (typeof ret[key] == 'object') {
-                        ret[key] = fillObj(ret[key]);
-                    } else {
-                        ret[key] = null;
-                    }
-                }
+    function getTarget(entry) {
+        var check = (typeof entry == 'object') ? entry.conf : conf;
+
+        if (check.target.id) {
+            if (check.log) {
+                console.log("Getting alert element target by ID ("+check.target.id+").");
             }
+
+            return document.getElementById(check.target.id);
+        }
+
+        else if (check.target.elem) {
+            if (check.log) {
+                console.log("Getting alert element target.");
+            }
+
+            return check.target.elem;
         }
 
         else {
-            for (var key in ret) {
-                if ((ret.hasOwnProperty(key)) &&
-                    (refobj.hasOwnProperty(key))) {
-console.log("Filling key: " + key);
-                    if (typeof refobj[key] == 'object') {
-                        ret[key] = fillObj(ret[key], refobj[key]);
-                    } else {
-                        ret[key] = refobj[key];
-                    }
-                }
+            if (check.log) {
+                console.log("No target ID or element specified. Using the document body.");
+            }
+
+            return document.body;
+        }
+    }
+
+
+
+    function getTimestamp() {
+        var stamp = (new Date().getTime());
+
+        if (conf.log) {
+            console.log("Getting timestamp: " + stamp);
+        }
+
+        return stamp;
+    }
+
+
+
+    function parseParamObj(arg_obj) {
+        if (conf.log) {
+            console.log("Parsing alert parameter object.");
+        }
+
+        var ret = {
+            opts: null,
+            message: null,
+            callback: null
+        };
+
+        if ('message' in arg_obj) {
+            if (conf.log) {
+                console.log("Got the message:");
+                console.log(arg_obj.message);
+            }
+
+            ret.message = arg_obj.message;
+        }
+
+        else {
+            console.log("Error: no message to alert. Quietly dying.");
+            return null;
+        }
+
+        if ('callback' in arg_obj) {
+            if (conf.log) {
+                console.log("Got callback function.");
+            }
+
+            ret.callback = arg_obj.callback;
+        }
+
+        else if (conf.callback) {
+            if (conf.log) {
+                console.log("Using default callback function.");
+            }
+
+            ret.callback = conf.callback;
+        }
+
+        else {
+            if (conf.log) {
+                console.log("This alert will have no callback.");
+            }
+        }
+
+        if (arg_obj.opts) {
+            if (conf.log) {
+                console.log("Got the options.");
+            }
+
+            ret.opts = arg_obj.opts;
+        }
+
+        else if (conf.values.use_default) {
+            if (conf.log) {
+                console.log("No options given, but using default options.");
+            }
+
+            ret.opts = conf.values.use_default;
+        }
+
+        else {
+            if (conf.log) {
+                console.log("No options given.");
             }
         }
 
@@ -234,140 +415,314 @@ console.log("Filling key: " + key);
 
 
 
-    function buildParts() {
-        for (var key in elems) {
-            if (elems.hasOwnProperty(key)) {
-                elems[key] = applyCssParts(document.createElement('div'),
-                                           conf[key]);
-            }
+    function displayNewAlertWithTempConfig(alert_obj, conf_obj) {
+        if (conf.log) {
+            console.log("Building new alert with temporary configuration settings.");
         }
 
-        elems.message.innerHTML = act.text;
+        var bk_conf = JSON.parse(JSON.stringify(conf));
+        makeNewConf(conf_obj);
 
-        buildOpts();
-    };
+        var elem = displayNewAlert(alert_obj);
+        makeNewConf(bk_conf);
 
-
-
-    function applyCssParts(elem, obj) {
-        if (obj.cssClass) {elem.className = obj.cssClass;}
-        if (obj.id) {elem.id = obj.id;}
         return elem;
-    };
-
-
-
-    function buildOpts() {
-        if (!act.opts) {
-            act.opts = [
-                {txt: conf.button.defaultOk,
-                 val: conf.values.defaultOk}
-            ];
-        }
-
-        vals.esc = conf.values.defaultEsc;
-        vals.opts = [ ];
-
-        var btnsCount = act.opts.length;
-        var btnWidth = (conf.button.equalWidths)
-            ? equalButtonWidthPercent()
-            : 'auto';
-
-        for (var o = 0; o < btnsCount; o++) {
-            var btn = document.createElement('div');
-
-            btn.className = conf.button.cssClass;
-            btn.innerHTML = act.opts[o].txt;
-            btn.setAttribute('value', o);
-            btn.style.width = btnWidth;
-
-            elems.buttons.appendChild(btn);
-            vals.opts.push(act.opts[o].val);
-
-            if (act.opts[o].esc) {
-                vals.esc = act.opts[o].val;
-            }
-        }
-    };
-
-
-
-    function displayAlert() {
-        elems.window.appendChild(elems.message);
-        elems.window.appendChild(elems.buttons);
-        elems.screen.appendChild(elems.window);
-        conf.target.appendChild(elems.screen);
-
-        if (conf.screen.toggleClass) {
-            window.setTimeout(alertApplyScreenToggleClass,
-                              0,
-                              elems.screen,
-                              conf.screen.toggleClass);
-        }
-    };
-
-
-
-    function alertApplyScreenToggleClass(elem, classname) {
-        elem.className += ' ' + classname;
     }
 
 
 
-    function addListeners() {
-        var btns = elems.buttons.childNodes;
-        for (var o = 0, n = btns.length; o < n; o++) {
-            btns[o].addEventListener('click', handleAlertEvent, false);
+    function displayNewAlert(alert_obj) {
+        if (conf.log) {
+            console.log("Building new alert.");
         }
 
-        elems.screen.addEventListener('click', handleAlertEvent, false);
+        var alert = null;
+
+        if (typeof alert_obj == 'string') {
+            if (conf.values.use_default) {
+                alert = buildAlert({
+                    message: alert_obj,
+                    opts: true
+                });
+            }
+
+            else {
+                alert = buildAlert({
+                    message: alert_obj,
+                    opts: false
+                });
+            }
+        }
+
+        else if (typeof alert_obj == 'object') {
+            alert = buildAlert(parseParamObj(alert_obj));
+        }
+
+        else {
+            console.log("Error: invalid alert parameter. Quietly dying.");
+        }
+
+        if (alert) {
+            addAlertToKeep(alert);
+            addAlertToTarget(alert);
+        }
+
+        return alert;
+    }
+
+
+
+    // This will set the `killable` attribute where appropriate.
+    // Alerts that have no options or screen can be killed by
+    // clicking the message/window. But those that do can only be
+    // killed by clicking the buttons or the screen.
+    function buildAlert(content) {
+        if (conf.log) {
+            console.log("Building alert elements with content:");
+            console.log(content);
+        }
+
+        var alert = {
+            id: 'alert-'+(new Date().getTime()),
+            callback: content.callback,
+            elem: null,
+            opts: null
+        };
+
+        var message_elem = Utils.makeElement(
+            conf.message.tag,
+            {class: conf.message.css_class},
+            content.message
+        );
+
+        alert.elem = Utils.makeElement(
+            conf.window.tag,
+            {class: conf.window.css_class},
+            message_elem
+        );
+
+        // If there are opts, each will get its own event listener.
+        if (content.opts) {
+            alert.opts = buildValsFromOpts(content.opts);
+            alert.elem.appendChild(alert.opts.elem);
+        }
+
+        // But if not, then the alert element itself needs one.
+        else {
+            alert.opts = {esc: conf.values.default_esc, vals: null, elem: null};
+            alert.elem.addEventListener('click', handleAlertEvent, false);
+            message_elem.setAttribute(kills.attr, kills.attr);
+            alert.elem.setAttribute(kills.attr, kills.attr);
+        }
+
+        if (conf.screen) {
+            alert.elem = Utils.makeElement(
+                conf.screen.tag,
+                {class: conf.screen.css_class},
+                alert.elem
+            );
+
+            alert.elem.addEventListener('click', handleAlertEvent, false);
+            alert.elem.setAttribute(kills.attr, kills.attr);
+        }
+
+        alert.elem.setAttribute(kills.stamp_id, alert.id);
+
+        return alert;
+    }
+
+
+
+    // The parameter should be an array of objects or `true`.
+    function buildValsFromOpts(opts) {
+        if (opts === true) {
+            opts = [{
+                txt: conf.values.default_txt,
+                val: conf.values.default_val
+            }];
+        }
+
+        var btn_width = (100 / opts.length) + '%',
+            buttons_bar = Utils.makeElement(
+                conf.buttons.tag,
+                {class: conf.buttons.css_class}
+            ),
+            esc_val = conf.values.default_esc,
+            vals = [ ];
+
+        for (var o = 0, m = opts.length; o < m; o++) {
+            var button = Utils.makeElement(
+                conf.button.tag,
+                {
+                    class: conf.button.css_class,
+                    style: 'width:'+btn_width,
+                    value: ''+o,
+                },
+                opts[o].txt
+            );
+
+            button.addEventListener('click', handleAlertEvent, false);
+            button.setAttribute(kills.attr, kills.attr);
+            buttons_bar.appendChild(button);
+            vals.push(opts[o].val);
+
+            if (opts[o].esc) {
+                esc_val = opts[o].val;
+            }
+        }
+
+        return {
+            elem: buttons_bar,
+            esc: esc_val,
+            vals: vals
+        }
+    }
+
+
+
+    function addAlertToKeep(alert_obj) {
+        if (conf.log) {
+            console.log("Adding alert to keep with key: " + alert_obj.id);
+        }
+
+        // Add the alert's conf in case of customizations. So the
+        // procedures started by the event listeners will use the
+        // alert's conf, not the global conf.
+        alert_obj.conf = JSON.parse(JSON.stringify(conf));
+        alerts_keep[alert_obj.id] = alert_obj;
+    }
+
+
+
+    function addAlertToTarget(alert) {
+        if (conf.log) {
+            console.log("Adding alert to target, listeners to target and window.");
+        }
+
+        var target = getTarget();
+        target.appendChild(alert.elem);
+
         window.addEventListener('keydown', handleAlertEvent, false);
-    };
+
+        if (conf.screen.toggle_class) {
+            window.setTimeout(
+                (function () {
+                    if (conf.log) {console.log("Applying alert screen's toggle class.");}
+                    alert.elem.className += ' ' + conf.screen.toggle_class;
+                }),
+                10
+            );
+        }
+
+        if (conf.delay.autokill > 0) {
+            setAlertAutokill(alert);
+        }
+
+        return target;
+    }
 
 
 
-    function removeListeners() {
-        // The other listeners don't need to be removed
-        // because the elements will be removed.
-        window.removeEventListener('keydown', this);
-    };
+    function setAlertAutokill(alert) {
+        if (conf.log) {
+            console.log("Setting alert autokill delay: " + conf.delay.autokill);
+        }
+
+        setTimeout(
+            (function () {
+                var target = getTarget(),
+                    nodes = target.childNodes;
+
+                if (nodes.length > 0) {
+                    var kill = false;
+                    for (var o = 0, m = nodes.length; o < m; o++) {
+                        if (nodes[o] == alert.elem) {
+                            kill = true;
+                        }
+                    }
+
+                    if (kill) {
+                        if (conf.log) {
+                            console.log("Autokilling alert.");
+                        }
+
+                        removeAlertByAlertObject(alert);
+                    }
+
+                    else {
+                        if (conf.log) {
+                            console.log("Not autokilling alert: it's not in the target.");
+                        }
+                    }
+                }
+
+                else {
+                    if (conf.log) {
+                        console.log("Alert autokill fail: it has already been removed.");
+                    }
+                }
+            }),
+            conf.delay.autokill
+        );
+    }
 
 
 
     function handleAlertEvent(evt) {
         if (!evt) {var evt = window.event;}
-
         evt.stopPropagation();
 
-        var eventType = evt.type,
-            caller = false,
+        var event_type = evt.type,
             dismiss = false,
-            isEsc = false;
+            is_esc = false,
+            caller = null,
+            entry = null;
 
-        if (eventType == 'click') {
+        if (conf.log) {
+            console.log("Handling alert event: " + event_type);
+        }
+
+        if (event_type == 'click') {
             caller = getCallerFromEvent(evt);
+
             if (caller) {
-                isEsc = (caller == elems.screen) ? true : false;
-                dismiss = true;
+                dismiss = (caller.hasAttribute(kills.attr)) ? true : false;
+
+                if (dismiss) {
+                    is_esc = (caller.className == conf.screen.css_class) ? true : false;
+                    entry = pullKeepEntryFromCaller(caller);
+                }
             }
+
             else {
-                // console.log("Couldn't get caller from click event.");
+                console.log("Couldn't get caller from click event.");
             }
-        }
-        else if (eventType == 'keydown') {
-            if (evt.keyCode == 27) {  // The esc key.
-                dismiss = true;
-                isEsc = true;
-            }
-        }
-        else {
-            console.log("Unhandled event type: " + eventType);
         }
 
-        if (dismiss) {
-            if (isEsc) {sendToCallback(vals.esc);}
-            else {sendToCallback(getButtonValue(caller));}
-            removeAlert();
+        else if (event_type == 'keydown') {
+            if (evt.keyCode == 27) {  // The esc key.
+                if (conf.log) {
+                    console.log("User hit the escape key.");
+                }
+
+                entry = pullLastKeepEntry();
+                dismiss = true;
+                is_esc = true;
+            }
+        }
+
+        else {
+            console.log("Unhandled event type: " + event_type);
+        }
+
+        if ((dismiss) && (entry)) {
+            removeAlertByEntry(entry, is_esc);
+        }
+
+        else {
+            if (conf.log) {
+                console.log("Not dismissing the alert.");
+            }
         }
     }
 
@@ -376,72 +731,166 @@ console.log("Filling key: " + key);
     function getCallerFromEvent(event) {
         caller = (event.target) ? event.target : event.scrElement;
 
-        if (caller == elems.screen) {
-            return caller;
+        while (!caller.className) {
+            caller = caller.parentNode;
         }
+
+        if (conf.log) {
+            console.log("Got caller from event:");
+            console.log(caller);
+        }
+
+        if (caller == document.body) {return false;}
+        else {return caller;}
+    }
+
+
+
+    function pullKeepEntryFromCaller(caller) {
+        var entry = null,
+            found = false,
+            parent = caller;
+
+        while ((!found) && (parent !== document.body)) {
+            if (attr = parent.getAttribute(kills.stamp_id)) {
+                entry = alerts_keep[attr];
+                delete alerts_keep[attr];
+                found = true;
+            }
+            else {
+                parent = parent.parentNode;
+            }
+        }
+
+        if (conf.log) {
+            console.log("Getting keep entry from caller.");
+            console.log("Entry:");
+            console.log(entry);
+        }
+
+        return entry;
+    }
+
+
+
+    function pullLastKeepEntry() {
+        if (conf.log) {
+            console.log("Popping last alert entry off the stack.");
+        }
+
+        var keys = Object.keys(alerts_keep),
+            entry = null;
+
+        if (keys.length > 0) {
+            var key = keys.shift();
+            entry = alerts_keep[key];
+            delete alerts_keep[key];
+        }
+
         else {
-            // If the use clicks, eg, the message, then this
-            // will bubble all the way to the document.body.
-            while ((caller != document.body) &&
-                   (caller.className != conf.button.cssClass)) {
-                caller = caller.parentNode;
+            if (conf.log) {
+                console.log("No entries in the keep.");
+            }
+        }
+
+        return entry;
+    }
+
+
+
+    function getButtonValue(button, entry) {
+        var val = null;
+
+        if (entry.opts.vals) {
+            val = entry.opts.vals[parseInt(button.getAttribute('value'))];
+
+            if (conf.log) {
+                console.log("Got button value: " + val);
+            }
+        }
+
+        else {
+            val = entry.opts.esc;
+
+            if (conf.log) {
+                console.log("This alert has no value options. Using escape value.");
+            }
+        }
+
+        return val;
+    }
+
+
+
+    function removeAlertByAlertObject(alert_obj) {
+        if (conf.log) {
+            console.log("Dismissing the alert by its returned object:");
+            console.log(alert_obj);
+        }
+
+        var is_esc = (alert_obj.elem.className == conf.screen.css_class) ? true : false;
+
+        var entry = alerts_keep[alert_obj.id];
+        delete alerts_keep[alert_obj.id];
+
+        removeAlertByEntry(entry, is_esc);
+    }
+
+
+
+    function removeAlertByEntry(entry, is_esc) {
+        if (entry.conf.log) {
+            console.log("Dismissing the alert by its entry in the keep.");
+        }
+
+        removeAlert(entry);
+
+        if (entry.callback) {
+            if (entry.conf.log) {
+                console.log("Firing callback.");
             }
 
-            // And if that's true, the event handler shouldn't respond.
-            if (caller == document.body) {return false;}
-            else {return caller;}
+            if (is_esc) {entry.callback(entry.opts.esc);}
+            else {entry.callback(getButtonValue(caller, entry));}
         }
     }
 
 
 
-    function getButtonValue(button) {
-        return vals.opts[parseInt(button.getAttribute('value'))];
-    }
-
-
-
-    function sendToCallback(val) {
-        if (act.callback) {
-            act.callback(val);
+    function removeAlert(entry) {
+        if (entry.conf.log) {
+            console.log("Removing alert element.");
         }
-    };
 
-
-
-    function removeAlert() {
         // This triggers the CSS transition.
-        if (conf.screen.toggleClass) {
-            applyCssParts(elems.screen, conf.screen);
+        if (entry.conf.screen.toggle_class) {
+            window.setTimeout(
+                (function () {
+                    if (entry.conf.log) {console.log("Removing alert screen's toggle class.");}
+                    entry.elem.className = entry.elem.className.replace(entry.conf.screen.toggle_class, '');
+                }),
+                1
+            );
         }
 
-        window.setTimeout(removeAlertScreenFromTarget,
-                          conf.dismissDelay);
-    };
+        window.setTimeout(
+            (function () {
+                if (entry.conf.log) {console.log("Remove alert element from its parent after "+entry.conf.delay.dismiss+" millisecs.");}
+                entry.elem.parentNode.removeChild(entry.elem);
+            }),
+            entry.conf.delay.dismiss
+        );
 
+        // The other listeners don't need to be removed because the
+        // elements no longer exist.
+        if (Object.keys(alerts_keep).length == 0) {
+            if (conf.log) {
+                console.log("There are no more active alerts. Removing window keydown event.");
+            }
 
-
-    function removeAlertScreenFromTarget() {
-        conf.target.removeChild(elems.screen);
-        reset();
+            window.removeEventListener('keydown', handleAlertEvent);
+        }
     }
-
-
-
-    function reset() {
-        clearObjs();
-        removeListeners();
-    };
-
-
-
-    function equalButtonWidthPercent() {
-        if (act.opts) {
-            return (100 / act.opts.length) + '%';
-        } else {
-            return '100%';
-        }
-    };
 
 
 
@@ -450,25 +899,85 @@ console.log("Filling key: " + key);
     /*
      * Public methods.
      */
+
     return {
-        message: function(msg) {
-            return make({text: msg});
+        new: function(alert_obj, conf_obj) {
+            if (typeof conf_obj == 'object') {
+                return displayNewAlertWithTempConfig(alert_obj, conf_obj);
+            }
+            else {
+                return displayNewAlert(alert_obj);
+            }
         },
 
-        with: function(conf) {
-            return make(conf);
+        kill: function(alert_obj) {
+            return removeAlertByAlertObject(alert_obj);
+        },
+
+        setConf: function(conf_obj) {
+            return makeNewConf(conf_obj);
+        },
+
+        resetConf: function() {
+            return resetConf();
         }
+
     };
 })();
 
 
 
 
-function Alert(params) {
-    if (typeof params == 'string') {
-        return MakeAlert.message(params);
-    }
-    else {
-        return MakeAlert.with(params);
-    }
-}
+// window.onload = (function () {
+
+//     // Basic notification test.
+//     console.log("\n\n\nTesting simple notification\n");
+//     var alert_1 = Alert.new("howdy");
+//     console.log("\n\n\nKilling it with `kill`.\n");
+//     Alert.kill(alert_1);
+
+
+//     // Simple with autokill.
+//     console.log("\n\n\nTesting notification with autokill\n");
+//     var alert_2 = Alert.new("howdy", {delay: {autokill: 2500}});
+
+
+//     // Full on.
+//     console.log("\n\n\nTesting alert with many settings and opts.\n");
+//     var alert_3 = Alert.new(
+//         {
+//             message: "WHAT HATH GOD WROUGHT",
+//             opts: [
+//                 {txt: 'nothing much', val: 'tootay'},
+//                 {txt: 'something cool', val: 'frootay'},
+//                 {txt: 'pretty whatever', val: 'snootay'},
+//                 {txt: 'mad decent', val: 'pootay'},
+//             ]
+//         },
+//         {
+//             screen: {toggle_class: 'screen-whoopie'},
+//             message: {tag: 'h1', css_class: 'heads-up-message'},
+//             button: {css_class: 'alert-buttons-are-rad'},
+//             delay: {dismiss: 0},
+//             callback: Admin.howdy
+//         }
+//     );
+
+
+//     // Same as before but with default opts.
+//     console.log("\n\n\nTesting alert with settings and default opts.\n");
+//     var alert_4 = Alert.new(
+//       {
+//             message: "WHAT HATH BOG BROUGHT",
+//             opts: true
+//         },
+//         {
+//             screen: {toggle_class: 'screen-whoopie'},
+//             message: {tag: 'h1', css_class: 'heads-up-message'},
+//             button: {css_class: 'alert-buttons-are-rad'},
+//             delay: {dismiss: 0},
+//             callback: Admin.howdy
+//         }
+//     );
+
+// });

@@ -3,6 +3,11 @@
  */
 
 
+*[onclick] {
+    cursor: pointer;
+}
+
+
 .alert-scr {
     position: fixed;
     top: 0;
@@ -15,11 +20,11 @@
     background-color: hsla(0, 0%, 0%, 0.75);
 
     opacity: 0;
-    transition: opacity 0.1s ease;
+    transition: opacity 0.2s ease;
 
     &.alert-fade {
         opacity: 1;
-        transition: opacity 0.1s ease;
+        transition: opacity 0.2s ease;
     }
 }
 
@@ -74,10 +79,120 @@
     text-transform: uppercase;
     cursor: pointer;
 
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
     &:hover {
         background-color: hsla(0, 0%, 80%, 1.0);
     }
 
     &:first-child {border-left: none;}
     &:last-child {border-right: none;}
+}
+
+
+.alert-box {
+    position: relative;
+    display: inline-block;
+    padding: 0;
+    width: 33.3%;
+    min-width: 250px;
+    height: 250px;
+
+    & > p {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    & > .alert-scr {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+    &.bg-red > .alert-scr,
+    &.bg-red > .alert-scr.alert-fade {
+        transition: opacity 0.5s ease;
+    }
+
+    &.bg-green > .alert-scr,
+    &.bg-green > .alert-scr.alert-fade {
+        transition: opacity 1s ease;
+    }
+
+    &.bg-blue > .alert-scr,
+    &.bg-blue > .alert-scr.alert-fade {
+        transition: opacity 1.5s ease;
+    }
+}
+
+.bg-red {
+    background-color: hsl(0, 100%, 50%);
+    & .alert-win {
+        background-color: hsl(90, 100%, 50%);
+    }
+    & .alert-btn {
+        background-color: hsl(180, 100%, 50%);
+        &:hover {
+            background-color: hsl(270, 100%, 50%);
+        }
+    }
+}
+
+.bg-green {
+    background-color: hsl(90, 100%, 50%);
+    & .alert-win {
+        background-color: hsl(180, 100%, 50%);
+    }
+    & .alert-btn {
+        background-color: hsl(270, 100%, 50%);
+        &:hover {
+            background-color: hsl(360, 100%, 50%);
+        }
+    }
+}
+
+.bg-blue {
+    background-color: hsl(180, 100%, 50%);
+    & .alert-win {
+        background-color: hsl(270, 100%, 50%);
+    }
+    & .alert-btn {
+        background-color: hsl(360, 100%, 50%);
+        &:hover {
+            background-color: hsl(90, 100%, 50%);
+        }
+    }
+}
+
+
+
+.big-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 40em;
+    background-color: hsl(30, 100%, 50%);
+    opacity: 0;
+    transform: rotate(330deg);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+
+    &.alert-fade {
+        opacity: 1;
+        transform: rotate(30deg);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+}
+
+.tiny-text {
+    font-size: 40px;
+    letter-spacing: 2px;
+    font-weight: bold;
+    background-color: hsl(210, 100%, 50%);
 }
