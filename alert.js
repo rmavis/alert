@@ -932,7 +932,8 @@ var Alert = (function () {
         },
 
         setConf: function(conf_obj) {
-            return makeNewConf(conf_obj);
+            conf = makeNewConf(conf_obj);
+            return conf;
         },
 
         resetConf: function() {
