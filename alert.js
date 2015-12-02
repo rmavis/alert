@@ -249,7 +249,7 @@ var Alert = (function () {
 
             // If this is true, then Alert.js will write messages to
             // your console.
-            log: true
+            log: false
         }
     }
 
