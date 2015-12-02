@@ -249,7 +249,7 @@ var Alert = (function () {
 
             // If this is true, then Alert.js will write messages to
             // your console.
-            log: false
+            log: true
         }
     }
 
@@ -629,8 +629,14 @@ var Alert = (function () {
         }
 
         setTimeout(
+            // The values of `conf` in this closure are those in the
+            // primary `conf`, not the temporary one potentially set
+            // by the custom values passed with the new alert. That
+            // is mostly okay, since the alert's custom conf will be
+            // used by `removeAlertByAlertObject`, and `getTarget`
+            // will pull the correct target when given the `alert`.
             (function () {
-                var target = getTarget(),
+                var target = getTarget(alert),
                     nodes = target.childNodes;
 
                 if (nodes.length > 0) {
@@ -926,8 +932,7 @@ var Alert = (function () {
         },
 
         setConf: function(conf_obj) {
-            conf = makeNewConf(conf_obj);
-            return conf;
+            return makeNewConf(conf_obj);
         },
 
         resetConf: function() {
