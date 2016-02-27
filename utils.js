@@ -59,6 +59,15 @@
   return Math.pow(progress, 4)
   },
 
+
+
+    // function execElementScripts(elem) {
+    //     var scrs = elem.getElementsByTagName('script');
+    //     for (var o = 0, m = scrs.length; o < m; o++) {
+    //         eval(scrs[o].innerHTML);
+    //     }
+    // }
+
 */
 
 
@@ -170,6 +179,54 @@ var Utils = (function () {
 
 
 
+    // Pass this a list of nodes and a function to pass each of those
+    // to. It will return an object with two keys: `pass`, being an
+    // array containing the nodes that passed the check, and `fail`,
+    // being an array containing the nodes that didn't.
+    // The check will be recursive unless specified otherwise.
+    function checkNodes(nodes, check, recur) {
+        recur = (typeof recur == 'undefined') ? true : recur;
+
+        var matches = { pass: [ ], fail: [ ] };
+
+        for (var o = 0, m = nodes.length; o < m; o++) {
+            // For element nodes.
+            if (nodes[o].nodeType == 1) {
+                if ((recur) && (nodes[o].childNodes.length > 0)) {
+                    if (checkNodes(nodes[o].childNodes, check, recur).pass.length > 0) {
+                        matches.pass.push(nodes[o]);
+                    }
+                    else {
+                        matches.fail.push(nodes[o]);
+                    }
+                }
+
+                else if (check(nodes[o])) {
+                    matches.pass.push(nodes[o]);
+                }
+
+                else {
+                    matches.fail.push(nodes[o]);
+                }
+            }
+
+            // For text nodes.
+            else if (nodes[o].nodeType == 3) {
+                if (check(nodes[o])) {
+                    matches.pass.push(nodes[o]);
+                }
+
+                else {
+                    matches.fail.push(nodes[o]);
+                }
+            }
+        }
+
+        return matches;
+    }
+
+
+
 
 
     /*
@@ -221,6 +278,69 @@ var Utils = (function () {
 
 
 
+        checkElemsForString: function(elems, string) {
+            return checkNodes(elems,
+                              (function (elem) {
+                                  if ((typeof elem == 'object') &&
+                                      (elem.nodeType == 3) &&
+                                      (elem.nodeValue.toLowerCase().indexOf(string) > -1)) {
+                                      return true;
+                                  }
+
+                                  else if ((typeof elem == 'string') &&
+                                           (elem.toLowerCase().indexOf(string) > -1)) {
+                                      return true;
+                                  }
+
+                                  else {
+                                      return false;
+                                  }
+                              })
+                             );
+        },
+
+
+
+        checkElemsForAttr: function(elems, attr_val, attr_name, recur) {
+            attr_name = (typeof attr_name == 'undefined') ? 'class' : attr_name;
+            recur = (typeof recur == 'undefined') ? false : recur;
+
+            return checkNodes(elems,
+                              (function (elem) {
+                                  if ((typeof elem == 'object') &&
+                                      (attr = elem.getAttribute(attr_name)) &&
+                                      (attr.split(' ').indexOf(attr_val) > -1)) {
+                                      return true;
+                                  }
+                                  else {
+                                      return false;
+                                  }
+                              }),
+                              recur
+                             );
+        },
+
+
+
+        // This is just a shortcut to `checkNodes`.
+        runCheck: function(elems, check, recur) {
+            return checkNodes(elems, check, recur);
+        },
+
+
+
+        appendChildren: function(parent, childs) {
+            var ret = parent;
+
+            for (var o = 0, m = childs.length; o < m; o++) {
+                parent.appendChild(childs[o]);
+            }
+
+            return parent;
+        },
+
+
+
         // Pass this an array of keys, an array of objects, a
         // function to perform on each member of the object array,
         // and a function to perform on the members of resulting
@@ -249,10 +369,38 @@ var Utils = (function () {
                 ret[key] = (key_fx) ? key_fx(arr) : arr;
             }
 
-            console.log("Made data object:");
-            console.log(ret);
+            // console.log("Made data object:");
+            // console.log(ret);
 
             return ret;
+        },
+
+
+
+        // Pass this an object, a key in that object, a function to
+        // perform with the value of that key, if it exists, and a
+        // function to transform that value before returning it. The
+        // last parameter is optional.
+        getFromObj: function(obj, key, check, transform) {
+            var ret = false;
+
+            if ((key in obj) && (check(obj[key]))) {
+                ret = (typeof transform == 'function') ? transform(obj[key]) : obj[key];
+            }
+
+            return ret;
+        },
+
+
+
+        looksLikeJSON: function(string) {
+            if ((typeof string == 'string') &&
+                (string[0] == '{') && (string[(string.length - 1)] == '}')) {
+                return true;
+            }
+            else {
+                return false;
+            }
         },
 
 
@@ -333,6 +481,39 @@ var Utils = (function () {
 
 
 
+        getSiblings: function(source, count, dir) {
+            dir = (typeof dir == 'undefined') ? 1 : dir;
+            count = (typeof count == 'number') ? count : 1;
+
+            if (dir == 1) {
+                var getNext = (function (node) {
+                    return node.nextSibling;
+                });
+            }
+            else {
+                var getNext = (function (node) {
+                    return node.previousSibling;
+                });
+            }
+
+            var node = source,
+                sibs = [ ],
+                n = 0;
+
+            while ((n < count) && (node = getNext(node))) {
+                if (node.nodeType == 1) {
+                    sibs.push(node);
+                    n += 1;
+                }
+            }
+
+            if (sibs.length == 1) {return sibs[0];}
+            else {return sibs;}
+            // return sibs;
+        },
+
+
+
         addListeners: function(elems, func, event_type) {
             event_type = (typeof event_type == 'undefined') ? 'click' : event_type;
             var m = elems.length;
@@ -340,6 +521,11 @@ var Utils = (function () {
             for (var o = 0; o < m; o++) {
                 elems[o].addEventListener(event_type, func, false);
             }
+        },
+
+
+
+        addToParent: function(content) {
         },
 
 
@@ -385,12 +571,65 @@ var Utils = (function () {
 
 
 
+        replaceChild: function(old_elem, new_elem) {
+            var par = old_elem.parentNode,
+                childs = par.childNodes,
+                index = -1;
+
+            out:
+            for (var o = 0, m = childs.length; o < m; o++) {
+                if (childs[o] == old_elem) {
+                    index = o;
+                    par.insertBefore(new_elem, childs[o]);
+                    par.removeChild(old_elem);
+                    break out;
+                }
+            }
+
+            return index;
+        },
+
+
+
         // From http://www.shamasis.net/2009/09/fast-algorithm-to-find-unique-items-in-javascript-array/
         unique: function(array) {
             var o = {}, i, l = array.length, r = [];
             for (i=0; i<l; i++) {o[array[i]] = array[i];}
             for (i in o) {r.push(o[i]);}
             return r;
+        },
+
+
+
+        // This is a modified version of the function from
+        // http://www.quirksmode.org/js/findpos.html
+        getPosition: function(elem) {
+	        var curleft = curtop = 0;
+
+            if (elem.offsetParent) {
+                do {
+			        curleft += elem.offsetLeft;
+			        curtop += elem.offsetTop;
+                } while (elem = elem.offsetParent);
+            }
+
+	        return {x: curleft, y: curtop};
+        },
+
+
+
+        getIndexOf(list, item) {
+            var index = -1;
+
+            out:
+            for (var o = 0, m = list.length; o < m; o++) {
+                if (list[o] == item) {
+                    index = o;
+                    break out;
+                }
+            }
+
+            return index;
         },
 
 
